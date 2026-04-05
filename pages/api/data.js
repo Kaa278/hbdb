@@ -1,5 +1,5 @@
 import pool from '../../lib/db';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
     const { db, table } = req.query;
