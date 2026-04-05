@@ -1,0 +1,9 @@
+services:
+  db-manager:
+    build: .
+    container_name: hbdb-manager
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
