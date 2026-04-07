@@ -12,8 +12,8 @@ RUN npm install
 # Copy project files
 COPY . .
 
-# Run build using the EXPLICIT local bin path
-RUN ./node_modules/.bin/next build
+# Run build using the standard npm script
+RUN npm run build
 
 EXPOSE 3000
 
