@@ -455,7 +455,7 @@ export default function Home() {
                   {activeTable && (
                     <div className="mt-6 flex justify-between items-center px-4 py-3 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                        DB SUITE: Accessing `{activeDb}.{activeTable}`
+                        KATHLYN: Accessing `{activeDb}.{activeTable}`
                       </p>
                       <p className="text-[10px] font-black text-gray-900 uppercase tracking-[0.1em] px-3 py-1 bg-yellow-400 rounded-full">
                         {filteredData.length} Records Found
