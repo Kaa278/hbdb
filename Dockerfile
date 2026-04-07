@@ -1,22 +1,20 @@
 # Use official Node.js Alpine
 FROM node:20-alpine
 
-# Install build essentials if needed (though bcryptjs is pure JS, some deps might need it)
-RUN apk add --no-cache libc6-compat
-
 WORKDIR /app
 
 # Copy package management files
 COPY package*.json ./
 
-# Clean install all dependencies
+# Install dependencies
+# We don't use apk add here because of DNS issues on the STB
 RUN npm install
 
 # Copy project files
 COPY . .
 
-# Ensure next is executable and run build
-RUN npx next build
+# Check if next exists and build
+RUN ls -la node_modules/.bin/next && npm run build
 
 EXPOSE 3000
 
