@@ -6,15 +6,15 @@ WORKDIR /app
 # Copy package management files
 COPY package*.json ./
 
-# Install dependencies
-# We don't use apk add here because of DNS issues on the STB
-RUN npm install
+# Force a clean install and VALIDATE that next exists
+# We add a dummy echo to bust the cache if needed
+RUN echo "Building Kathlyn" && npm install && ls -la node_modules/.bin/next
 
 # Copy project files
 COPY . .
 
-# Check if next exists and build
-RUN ls -la node_modules/.bin/next && npm run build
+# Build using npx
+RUN npx next build
 
 EXPOSE 3000
 
