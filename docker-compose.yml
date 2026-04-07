@@ -2,8 +2,7 @@ services:
   db-manager:
     build: 
       context: .
-      args:
-        - DNS=8.8.8.8
+      network: host
     image: hbdb-main
     container_name: hbdb-manager
     restart: always
