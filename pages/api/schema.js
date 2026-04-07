@@ -10,7 +10,8 @@ export default async function handler(req, res) {
 
     try {
         // We use DESCRIBE on the specified table in the specified DB
-        const [columns] = await pool.query(`DESCRIBE ??`, [`${db}.${table}`]);
+        // Use nested array for multipart identifiers [db, table] -> `db`.`table`
+        const [columns] = await pool.query(`DESCRIBE ??`, [[db, table]]);
         res.status(200).json({ success: true, columns, database: db, table });
     } catch (error) {
         console.error('API /schema error:', error);

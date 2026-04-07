@@ -1,5 +1,11 @@
 import pool from '../../../lib/db';
 
+const ALLOWED_TYPES = [
+    'INT', 'BIGINT', 'VARCHAR', 'TEXT', 'LONGTEXT', 'DATE',
+    'DATETIME', 'TIMESTAMP', 'DECIMAL', 'FLOAT', 'DOUBLE',
+    'BOOLEAN', 'TINYINT', 'JSON'
+];
+
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { db, tableName, columns } = req.body;
@@ -7,20 +13,31 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Database, tableName, and columns array are required' });
         }
 
-        const safeTableName = tableName.replace(/[^a-zA-Z0-9_]/g, '');
         try {
             const colDefs = columns.map(col => {
+                // Validate type
+                const baseType = col.type.toUpperCase().split('(')[0];
+                if (!ALLOWED_TYPES.includes(baseType)) {
+                    throw new Error(`Invalid or disallowed column type: ${col.type}`);
+                }
+
+                // Sanitize name (identifier)
                 const safeName = col.name.replace(/[^a-zA-Z0-9_]/g, '');
-                let def = `\`${safeName}\` ${col.type}`;
+                if (!safeName) throw new Error('Invalid column name');
+
+                let def = `\`${safeName}\` ${col.type.toUpperCase()}`;
                 if (col.length) def += `(${parseInt(col.length)})`;
                 if (!col.nullable) def += ' NOT NULL';
                 if (col.autoIncrement) def += ' AUTO_INCREMENT';
                 if (col.primaryKey) def += ' PRIMARY KEY';
                 return def;
             });
-            const query = `CREATE TABLE \`${db}\`.\`${safeTableName}\` (${colDefs.join(', ')})`;
-            await pool.query(query);
-            return res.status(201).json({ success: true, message: `Table ${safeTableName} created in ${db}` });
+
+            // Use ?? for DB and Table names
+            const query = `CREATE TABLE ?? (${colDefs.join(', ')})`;
+            await pool.query(query, [[db, tableName]]);
+
+            return res.status(201).json({ success: true, message: `Table ${tableName} created in ${db}` });
         } catch (error) {
             console.error('API /manage/table POST error:', error);
             return res.status(500).json({ success: false, message: 'Failed to create table', error: error.message });
@@ -34,8 +51,8 @@ export default async function handler(req, res) {
         }
 
         try {
-            // WARNING: Destructive action
-            await pool.query(`DROP TABLE \`${db}\`.\`${tableName}\``);
+            // Use ?? for DB and Table names to prevent injection
+            await pool.query(`DROP TABLE ??`, [[db, tableName]]);
             return res.status(200).json({ success: true, message: `Table ${tableName} dropped from ${db}` });
         } catch (error) {
             console.error('API /manage/table DELETE error:', error);

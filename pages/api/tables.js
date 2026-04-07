@@ -10,8 +10,8 @@ export default async function handler(req, res) {
 
     try {
         const [rows] = await pool.query(`SHOW TABLES FROM ??`, [db]);
-        const key = `Tables_in_${db}`;
-        const tables = rows.map(row => row[key] || Object.values(row)[0]);
+        // Safer way to access the column value regardless of the dynamic key
+        const tables = rows.map(row => Object.values(row)[0]);
 
         res.status(200).json({ success: true, tables, database: db });
     } catch (error) {

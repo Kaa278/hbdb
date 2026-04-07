@@ -5,7 +5,6 @@ export default async function handler(req, res) {
     const { db, table } = req.query;
     if (!db || !table) return res.status(400).json({ message: 'Database (db) and Table (table) names are required' });
 
-    const identifiers = [`${db}.${table}`];
 
     // Helper to hash passwords if present
     const hashPasswords = async (data) => {
@@ -24,7 +23,8 @@ export default async function handler(req, res) {
     // --- GET: Fetch Rows ---
     if (req.method === 'GET') {
         try {
-            const [rows] = await pool.query(`SELECT * FROM ?? LIMIT 100`, identifiers);
+            // Using nested array for multipart identifiers [db, table] -> `db`.`table`
+            const [rows] = await pool.query(`SELECT * FROM ?? LIMIT 100`, [[db, table]]);
             return res.status(200).json({ success: true, data: rows });
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Select error', error: error.message });
@@ -35,7 +35,8 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         try {
             const dataToInsert = await hashPasswords(req.body);
-            const [result] = await pool.query(`INSERT INTO ?? SET ?`, [identifiers[0], dataToInsert]);
+            // mysql2 handles the '?' as a SET object correctly
+            const [result] = await pool.query(`INSERT INTO ?? SET ?`, [[db, table], dataToInsert]);
             return res.status(201).json({ success: true, message: 'Inserted successfully', id: result.insertId });
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Insert error', error: error.message });
@@ -48,7 +49,8 @@ export default async function handler(req, res) {
         if (!id || !pk_field) return res.status(400).json({ message: 'ID and Primary Key field name are required' });
         try {
             data = await hashPasswords(data);
-            const [result] = await pool.query(`UPDATE ?? SET ? WHERE ?? = ?`, [identifiers[0], data, pk_field, id]);
+            // Use ?? for pk_field to prevent column-name injection
+            const [result] = await pool.query(`UPDATE ?? SET ? WHERE ?? = ?`, [[db, table], data, pk_field, id]);
             return res.status(200).json({ success: true, message: 'Updated successfully', affected: result.affectedRows });
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Update error', error: error.message });
@@ -60,7 +62,8 @@ export default async function handler(req, res) {
         const { id, pk_field } = req.body;
         if (!id || !pk_field) return res.status(400).json({ message: 'ID and Primary Key field name are required' });
         try {
-            const [result] = await pool.query(`DELETE FROM ?? WHERE ?? = ?`, [identifiers[0], pk_field, id]);
+            // Use ?? for pk_field to prevent column-name injection
+            const [result] = await pool.query(`DELETE FROM ?? WHERE ?? = ?`, [[db, table], pk_field, id]);
             return res.status(200).json({ success: true, message: 'Deleted successfully', affected: result.affectedRows });
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Delete error', error: error.message });

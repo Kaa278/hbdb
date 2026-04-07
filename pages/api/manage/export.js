@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     if (!db) return res.status(400).json({ message: 'Database (db) is required' });
 
     try {
-        let sqlDump = `-- God Mode SQL Dump\n`;
+        let sqlDump = `-- MariaDB Suite SQL Dump\n`;
         sqlDump += `-- Database: ${db}\n`;
         sqlDump += `-- Generated: ${new Date().toISOString()}\n\n`;
 

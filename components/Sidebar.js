@@ -19,7 +19,7 @@ export default function Sidebar({
                         <Database className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-black text-gray-900 tracking-tighter uppercase italic">GOD MODE</h2>
+                        <h2 className="text-sm font-black text-gray-900 tracking-tighter uppercase italic">DB SUITE</h2>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">DB Manager</p>
                     </div>
                 </div>

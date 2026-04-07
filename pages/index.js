@@ -9,6 +9,8 @@ import SchemaBuilder from '../components/SchemaBuilder';
 import ImportModal from '../components/ImportModal';
 import ExportModal from '../components/ExportModal';
 import SQLEditor from '../components/SQLEditor';
+import { LogOut, User as UserIcon } from 'lucide-react';
+
 
 export default function Home() {
   const [databases, setDatabases] = useState([]);
@@ -31,6 +33,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [errorInfo, setErrorInfo] = useState(null);
+  const [user, setUser] = useState(null);
+
 
   // Expose DB modal to Sidebar
   useEffect(() => {
@@ -39,10 +43,33 @@ export default function Home() {
     return () => window.removeEventListener('openDbModal', handleOpenDb);
   }, []);
 
-  // Initial load: Fetch all databases
+  // Initial load: Fetch all databases and user info
   useEffect(() => {
     fetchDatabases();
+    fetchUser();
   }, []);
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (res.ok) setUser(data.user);
+    } catch (err) {
+      console.error('Failed to fetch user', err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        window.location.href = '/login';
+      }
+    } catch (err) {
+      console.error('Logout error', err);
+    }
+  };
+
 
   // When database changes, fetch its tables
   useEffect(() => {
@@ -297,7 +324,24 @@ export default function Home() {
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span className="text-[11px] font-bold text-gray-600 uppercase tracking-widest">MariaDB Server</span>
             </div>
+
+            {user && (
+              <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter leading-none">{user.name}</span>
+                  <span className="text-[9px] font-bold text-gray-400 leading-none mt-1">{user.role}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-colors group"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                </button>
+              </div>
+            )}
           </div>
+
         </header>
 
         {/* Main Content + Side Panels Wrapper */}
@@ -411,7 +455,7 @@ export default function Home() {
                   {activeTable && (
                     <div className="mt-6 flex justify-between items-center px-4 py-3 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                        GOD MODE: Accessing `{activeDb}.{activeTable}`
+                        DB SUITE: Accessing `{activeDb}.{activeTable}`
                       </p>
                       <p className="text-[10px] font-black text-gray-900 uppercase tracking-[0.1em] px-3 py-1 bg-yellow-400 rounded-full">
                         {filteredData.length} Records Found
