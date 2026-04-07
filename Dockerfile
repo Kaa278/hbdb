@@ -1,19 +1,22 @@
-# Use official Node.js Alpine (Pure JS version)
+# Use official Node.js Alpine
 FROM node:20-alpine
+
+# Install build essentials if needed (though bcryptjs is pure JS, some deps might need it)
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
 # Copy package management files
 COPY package*.json ./
 
-# Install dependencies (bcryptjs doesn't need build tools!)
+# Clean install all dependencies
 RUN npm install
 
 # Copy project files
 COPY . .
 
-# Run build using the standard npm script
-RUN npm run build
+# Ensure next is executable and run build
+RUN npx next build
 
 EXPOSE 3000
 
