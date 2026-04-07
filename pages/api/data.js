@@ -6,12 +6,11 @@ export default async function handler(req, res) {
     if (!db || !table) return res.status(400).json({ message: 'Database (db) and Table (table) names are required' });
 
 
-    // Helper to hash passwords if present
+
     const hashPasswords = async (data) => {
         const processed = { ...data };
         for (const key of Object.keys(processed)) {
             if (key.toLowerCase().includes('password') && typeof processed[key] === 'string' && processed[key].length > 0) {
-                // Only hash if it's not already a hash (starts with $2b$ or $2a$)
                 if (!processed[key].startsWith('$2b$') && !processed[key].startsWith('$2a$')) {
                     processed[key] = await bcrypt.hash(processed[key], 10);
                 }
@@ -20,10 +19,8 @@ export default async function handler(req, res) {
         return processed;
     };
 
-    // --- GET: Fetch Rows ---
     if (req.method === 'GET') {
         try {
-            // Using nested array for multipart identifiers [db, table] -> `db`.`table`
             const [rows] = await pool.query(`SELECT * FROM ?? LIMIT 100`, [[db, table]]);
             return res.status(200).json({ success: true, data: rows });
         } catch (error) {
@@ -31,11 +28,9 @@ export default async function handler(req, res) {
         }
     }
 
-    // --- POST: Insert Row ---
     if (req.method === 'POST') {
         try {
             const dataToInsert = await hashPasswords(req.body);
-            // mysql2 handles the '?' as a SET object correctly
             const [result] = await pool.query(`INSERT INTO ?? SET ?`, [[db, table], dataToInsert]);
             return res.status(201).json({ success: true, message: 'Inserted successfully', id: result.insertId });
         } catch (error) {
