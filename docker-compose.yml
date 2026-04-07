@@ -1,5 +1,6 @@
 services:
   db-manager:
+    build: .
     image: hbdb-main
     container_name: hbdb-manager
     restart: always
